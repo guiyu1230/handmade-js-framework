@@ -1,0 +1,103 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.demo-logo-vertical {
+  height: 32px;
+  margin: 16px;
+  background: rgba(255,255,255,.2);
+  border-radius: 6px;
+}
+
+.box {
+  width: 50px;
+  height: 50px;
+  background-color: blue;
+  margin: 10px;
+}
+
+.container {
+  width: 300px;
+  height: 300px;
+  border: 1px solid #000;
+}
+
+.dragging {
+  border: 5px dashed #000;
+  box-sizing: border-box;
+}
+.drag-layer {
+  position: fixed;
+}
+
+
+
+/**************Sort.tsx**************/
+
+.card {
+  width: 200px;
+  line-height: 60px;
+  padding: 0 20px;
+  border: 1px solid #000;
+  background-color: skyblue;
+  margin: 10px;
+  cursor: move;
+}
+
+.card.dragging {
+  border-style: dashed;
+  background: #fff; 
+}
+
+/****************lowcode.tsx*************************/
+.row {
+  padding: 10px;
+  border: 1px solid #000;
+  display: flex;
+  background-color: #fff;
+}
+.column{
+  flex: 1;
+  padding: 10px;
+  border: 1px solid blue;
+  background-color: #fff;
+}
+/* .column:not(:last-child) {
+  margin-right: 10px;
+} */
+.component {
+  height: 60px;
+  /* margin: 10px; */
+  border: 1px dashed #000;
+  background-color: #fff;
+}
+.bottomBar {
+  border: 1px solid #000;
+  display: flex;
+}
+.bottomBar .bar-item {
+  border: 1px solid blue;
+  margin: 10px;
+  background-color: #fff;
+}
+
+/* .drop-zone {} */
+.drop-zone-horizental {
+    height: 20px;
+}
+.drop-zone-vertical {
+    width: 20px;
+}
+.drop-zone.focus {
+  background: blue;
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script type="module">
+        // reactive测试
+        // import { reactive } from './relative.js'
+        // const target = {
+        //     name: '小狼',
+        //     age: 22,
+        //     test: {
+        //         test1: {
+        //             test2: 21
+        //         }
+        //     }
+        // }
+
+        // const proxy = reactive(target);
+        // console.log(proxy.age);
+        // proxy.test.test1.test2 = 22  // test执行了get方法,test1执行了get方法,test2执行了set方法
+        // console.log(delete proxy.age)
+
+        // import { ref, effect, toRef, reactive } from './relative.js'
+        // const obj = reactive({
+        //     name: '小浪'
+        // })
+        // const age = toRef(obj, 'age');
+        // age.value = 21;
+        // console.log(obj, age);
+
+        // effect(() => {
+        //     age.value = 22;
+        // })
+        // console.log(obj);
+
+        import { ref, effect, reactive, toRefs } from './relative.js';
+        const obj = reactive({
+            name: '小浪',
+            age: 22
+        })
+
+        const { name, age } = toRefs(obj);
+
+        console.log(toRefs(obj))
+
+        name.value = '小云';
+        age.value = 21;
+
+        console.log(obj)
+    </script>
+</body>
+</html>
