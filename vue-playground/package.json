@@ -1,0 +1,25 @@
+{
+  "name": "vue-playground",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@codemirror/lang-vue": "^0.1.3",
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "@vue/compiler-sfc": "^3.4.27",
+    "codemirror": "^6.0.1",
+    "vue": "^3.4.21"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "vite": "^5.2.0"
+  },
+  "engines": {
+    "node": ">=18.16.0"
+  }
+}
