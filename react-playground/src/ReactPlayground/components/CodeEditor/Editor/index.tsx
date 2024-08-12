@@ -44,6 +44,7 @@ export default function Editor(props: Props) {
       jsx: monaco.languages.typescript.JsxEmit.Preserve,
       esModuleInterop: true,
     })
+    
   }
 
   return <MonacoEditor

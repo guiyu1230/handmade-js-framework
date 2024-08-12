@@ -288,6 +288,8 @@ export default function Editor(props: Props) {
 ### 配置多文件切换和全局Context属性
 
 #### 配置全局`Context`
+- `theme` 全局主题 `light` | `dark`
+- `setTheme` 设置全局主题回调
 - `files` 里是键值对方式保存的文件信息，键是文件名，值是文件的信息，包括 `name、value、language`。
 - `selectedFileName` 选中的文件名
 - `setSelectedFileName` 选中文件回调
@@ -581,4 +583,91 @@ export default function Preview() {
     />
   </div>
 }
+```
+
+### 文件增删改
+#### `FileNameItem`文件组件
+- `value`: 文件名值. 同步`context的files`状态
+- `creating`: 编辑状态控制. 固定逻辑
+- `readonly`: 只读状态. 固定值
+- `actived`: 文件的选中状态. 同步`context的selectedFileName`状态
+- `onClick`: 文件选中状态回调. 触发`context的setSelectedFileName回调`
+- `onRemove`: 文件的移除状态. 触发`context的removeFile`回调
+- `onEditComplete`: 编辑回调. 触发`context的updateFileName`回调
+
+#### `FileNameList`列表组件
+- `addTab`: 添加文件回调. 触发`context的addFile`回调
+
+```tsx
+<FileNameItem
+  key={item + index}
+  value={item}
+  readonly={readonlyFileNames.includes(item)}
+  creating={creating && index === arr.length - 1}
+  actived={selectedFileName === item}
+  onClick={() => setSelectedFileName(item)}
+  onEditComplete={(name: string) => handleEditComplete(name, item)}
+  onRemove={() => { handleRemove(item)}}
+></FileNameItem>
+```
+
+### 错误显示、主题切换
+
+#### 错误显示
+- `iframe`监听错误日志
+- 通过`window.parent.postMessage`推送错误信息
+- `Preview/index.test`监听`message`回调信息. 
+- 弹出`Message`弹窗信息
+
+```js
+// iframe.html
+<script>
+window.addEventListener('error', (e) => {
+    window.parent.postMessage({type: 'ERROR', message: e.message})
+})
+</script>
+
+// Preview/index.tsx
+const [error, setError] = useState('')
+
+const handleMessage = (msg: MessageData) => {
+  const { type, message } = msg.data
+  if (type === 'ERROR') {
+    setError(message)
+  }
+}
+
+useEffect(() => {
+  window.addEventListener('message', handleMessage)
+  return () => {
+    window.removeEventListener('message', handleMessage)
+  }
+}, [])
+return (
+  <Message type='error' content={error} />
+)
+```
+
+#### 主题切换
+- `context`添加`theme` 全局主题 `light` | `dark`
+- `context`添加`setTheme` 设置全局主题回调
+- `monaco-editor`设置`options`: `{theme: 'vs-${theme}'}`
+
+通过给主入口文件设置主题变量和css变量绑定完成全局控制
+```js
+// 全局主题变量
+const { theme } = useContext(PlaygroundContext)
+
+return <div className={theme}></div>
+
+// css变量
+.light {
+  --text: #444;
+  --bg: #fff;
+}
+  
+.dark {
+  --text: #fff;
+  --bg: #1a1a1a;
+} 
 ```
