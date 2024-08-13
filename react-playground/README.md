@@ -671,3 +671,94 @@ return <div className={theme}></div>
   --bg: #1a1a1a;
 } 
 ```
+
+### 分享链接和代码下载
+#### 分享链接
+- 链接分享原理就是把 files 信息 JSON.stringify 之后保存到 location.hash。
+- 使用`fflate`压缩json字符串. 转成base64. 减少长度
+- 使用`fflate`代替`JSON.stringfy` 减少长度
+```sh
+# 复制
+npm install --save copy-to-clipboard
+# 字符串加解密.压缩/解压缩
+npm install --save fflate
+# 前端zip文件生成
+npm install --save jszip
+# blob文件下载方法
+npm install --save file-saver
+npm install --save-dev @types/file-saver 
+```
+
+```js
+useEffect(() => {
+  const hash = JSON.stringify(files)
+  window.location.hash = encodeURIComponent(hash)
+}, [files])
+
+const getFilesFromUrl = () => {
+  let files: Files | undefined
+  try {
+      const hash = decodeURIComponent(window.location.hash.slice(1))
+      files = JSON.parse(hash)
+  } catch (error) {
+    console.error(error)
+  }
+  return files
+}
+```
+- 优化后
+```js
+// utils.ts
+import { strFromU8, strToU8, unzlibSync, zlibSync } from "fflate"
+// 压缩
+export function compress(data: string): string {
+  const buffer = strToU8(data)
+  const zipped = zlibSync(buffer, { level: 9 })
+  const str = strFromU8(zipped, true)
+  return btoa(str)
+}
+// 解压缩
+export function uncompress(base64: string): string {
+  const binary = atob(base64)
+  const buffer = strToU8(binary, true)
+  const unzipped = unzlibSync(buffer)
+  return strFromU8(unzipped)
+}
+// 实际使用
+useEffect(() => {
+  const hash = compress(JSON.stringify(files))
+  window.location.hash = hash
+}, [files])
+
+const getFilesFromUrl = () => {
+  let files: Files | undefined
+  try {
+      const hash = uncompress(window.location.hash.slice(1))
+    files = JSON.parse(hash)
+  } catch (error) {
+    console.error(error)
+  }
+  return files
+}
+
+import copy from 'copy-to-clipboard';
+copy(window.location.href);
+```
+
+#### 代码下载
+- 浏览器端`zip压缩`下载文件
+```js
+// utils.ts
+export async function downloadFiles(files: Files) {
+  const zip = new JSZip()
+
+  Object.keys(files).forEach((name) => {
+    zip.file(name, files[name].value)
+  })
+
+  const blob = await zip.generateAsync({ type: 'blob' })
+  saveAs(blob, `code${Math.random().toString().slice(2, 8)}.zip`)
+}
+// 首页 
+await downloadFiles(files);
+```
