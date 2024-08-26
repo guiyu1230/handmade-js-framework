@@ -31,7 +31,7 @@ export default function FileNameList() {
   const [creating, setCreating] = useState(false);
 
   const addTab = () => {
-    addFile('Comp' + Math.random().toString().slice(2, 8) + '.tsx')
+    addFile('Comp' + Math.random().toString().slice(2, 6) + '.tsx')
     setCreating(true)
   }
 

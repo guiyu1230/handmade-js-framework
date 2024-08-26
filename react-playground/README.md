@@ -138,12 +138,14 @@ export default App;
 ```sh
 npm install --save allotment
 ```
-```jsx
+```js
+<
 import { Allotment } from "allotment";
 import 'allotment/dist/style.css';
 
 export default function ReactPlayground() {
-    return <div style={{height: '100vh'}}>
+  return (
+    <div style={{height: '100vh'}}>
         <Allotment defaultSizes={[100, 100]}>
             <Allotment.Pane minSize={500}>
                 <div>
@@ -157,6 +159,7 @@ export default function ReactPlayground() {
             </Allotment.Pane>
         </Allotment>
     </div>
+  )
 }
 ```
 
@@ -762,3 +765,12 @@ export async function downloadFiles(files: Files) {
 // 首页 
 await downloadFiles(files);
 ```
+
+### 总结
+1. 使用`allotment`实现拖动两边大小. 自由改变布局
+2. 使用`@monaco-editor/react` 实现了网页版 typescript 编辑器，并且实现了自动类型导入
+3. 通过` @babel/standalone `实现了文件编译，并且写了一个` babel `插件实现了 import 的 source 的修改
+4. 通过 iframe 实现了预览功能，并且通过 postMessage 和父窗口通信来显示代码运行时的错误
+5. 基于 css 变量 + context 实现了主题切换功能
+6. 通过 fflate + btoa 实现了文件内容的编码、解码，可以通过链接分享代码
+7. 通过 Performance 分析性能问题，并通过 Web Worker 拆分编译逻辑到 worker 线程来进行性能优化，消除了 long lask
