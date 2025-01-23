@@ -15,5 +15,5 @@ a handwritten JavaScript framework
 
 [手写import-remote-component-react](./import-remote-component-react/README.md)
 
-*** 待添加==手写create-vite==
+[手写monorepo脚手架cli](./vite-project/README.md)
 
