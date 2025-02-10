@@ -62,3 +62,114 @@ git commit -m '项目模版 1.1.0'
 
 npx changeset publish
 ```
+
+### 创建 cli 和 create 包
+
+```sh
+mkdir packages/cli packages/create
+
+cd packages/cli
+
+npm init -y
+
+cd ../create
+
+npm init -y
+```
+
+然后给`create`和`cli`包添加发布包设置:
+
+1. 给`create`和`cli`包的`package.json`修改`name`名字`@colin123-cli/create`和`@colin123-cli/cli`且
+2. 给`create`和`cli`包的`package.json`设置发布权限为公共`publishConfig: { access: "public" }`
+
+-  cli 包添加 create 包为依赖
+
+```sh
+# 必须是package.json里的name而不是文件夹名create
+pnpm --filter cli add @colin123-cli/create --workspace
+# 在根项目安装 typescript
+pnpm add typescript @types/node -w --save-dev
+# 给cli项目执行ts初始化. 将ts作为打包编译器
+pnpm --filter cli exec npx tsc --init
+# 给create项目执行ts初始化. 将ts作为打包编译器
+pnpm --filter create exec npx tsc --init
+```
+
+### 创建create代码执行编译打包
+```bash
+pnpm --filter create exec npx tsc
+```
+
+### 创建cli代码
+```js
+#!/usr/bin/env node
+import create from '@guang-cli/create';
+import { Command } from 'commander';
+import fse from 'fs-extra';
+import path from 'node:path';
+
+const pkgJson = fse.readJSONSync(path.join(import.meta.dirname, '../package.json'));
+
+const program = new Command();
+
+program
+  .name('guang-cli')
+  .description('脚手架 cli')
+  .version(pkgJson.version);
+
+program.command('create')
+  .description('创建项目')
+  .action(async () => {
+      create();
+  });
+
+program.parse();
+```
+
+### 安装依赖和打包编译
+```bash
+pnpm --filter cli add commander fs-extra
+
+pnpm --filter cli add --save-dev @types/fs-extra
+
+pnpm --filter cli exec npx tsc 
+
+pnpm --filter cli exec node ./dist/index.js create
+```
+
+再添加`bin`配置 `"bin": { "colin-cli": "dist/index.js" }`
+
+### 发布包
+```bash
+# 添加changelog日志
+git add .
+git commit -m 'cli 包、create 包初始化'
+npx changeset add
+npx changeset version
+npm adduser
+
+# changeset多包发布
+git add .
+git commit -m 'cli create 0.0.2'
+
+npx changeset publish
+```
+
+#### 测试效果
+```bash
+$ npx @colin123-cli/cli create
+# create 命令执行中...
+```
+
+### npm版本信息获取
+- 创建`packages/utils`文件夹项目. 初始化项目命名`package.json`的`name: @guang-cli/utils`
+```bash
+# 创建项目
+mkdir packages/utils
+
+cd packages/utils
+
+npm init -y
+# ts初始化
+pnpm --filter utils exec npx tsc --init
+```
