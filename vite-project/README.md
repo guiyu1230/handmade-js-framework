@@ -172,4 +172,191 @@ cd packages/utils
 npm init -y
 # ts初始化
 pnpm --filter utils exec npx tsc --init
+
+pnpm --filter utils add axios url-join
+```
+
+#### 创建获取版本信息的方法库
+```js
+import axios from 'axios';
+import urlJoin from 'url-join';
+
+function getNpmRegistry() {
+  return 'https://registry.npmmirror.com';
+}
+
+async function getNpmInfo(packageName: string) {
+  const register = getNpmRegistry();
+  const url = urlJoin(register, packageName);
+  try {
+    const response = await axios.get(url);
+
+    if (response.status === 200) {
+      return response.data;
+    }
+  } catch(e) {
+    return Promise.reject(e);
+  }
+}
+
+async function getLatestVersion(packageName: string) {
+  const data = await getNpmInfo(packageName);
+  return data['dist-tags'].latest;
+}
+
+async function getVersions(packageName: string) {
+  const data = await getNpmInfo(packageName);
+  return  Object.keys(data.versions);
+}
+
+export {
+  getNpmRegistry,
+  getNpmInfo,
+  getLatestVersion,
+  getVersions
+}
+```
+
+#### 创建npmPackage安装脚本包
+```js
+// NpmPackage.ts
+import fs from 'node:fs';
+import fse from 'fs-extra';
+// @ts-ignore
+import npminstall from 'npminstall';
+import { getLatestVersion, getNpmRegistry } from './versionUtils.js';
+import path from 'node:path';
+
+export interface NpmPackageOptions {
+    name: string;
+    targetPath: string;
+}
+
+class NpmPackage {
+
+    name: string;
+    version: string = '';
+    targetPath: string;
+    storePath: string;
+    
+    constructor(options: NpmPackageOptions) {
+        this.targetPath = options.targetPath;
+        this.name = options.name;
+
+        this.storePath = path.resolve(options.targetPath, 'node_modules');
+    }
+
+    async prepare() {
+        if (!fs.existsSync(this.targetPath)) {
+            fse.mkdirpSync(this.targetPath);
+        }
+        const version = await getLatestVersion(this.name);
+        this.version = version;
+    }
+
+    async install() {
+        await this.prepare();
+
+        return npminstall({
+            pkgs: [
+                {
+                    name: this.name,
+                    version: this.version,
+                }
+            ],
+            registry: getNpmRegistry(),
+            root: this.targetPath
+        });
+    }
+
+    get npmFilePath() {
+        return path.resolve(this.storePath, `.store/${this.name.replace('/', '+')}@${this.version}/node_modules/${this.name}`);
+    }
+
+    async exists() {
+        await this.prepare();
+
+        return fs.existsSync(this.npmFilePath);
+    }
+
+    async getPackageJSON() {
+        if(await this.exists()) {
+            return fse.readJsonSync(path.resolve(this.npmFilePath, 'package.json'))
+        }
+        return null;
+    }
+
+    async getLatestVersion() {
+        return getLatestVersion(this.name);
+    }
+
+    async update() {
+        const latestVersion = await this.getLatestVersion();
+        return npminstall({
+            root: this.targetPath,
+            registry: getNpmRegistry(),
+            pkgs: [
+                {
+                    name: this.name,
+                    version: latestVersion,
+                }
+            ]
+        });
+    }
+}
+
+export default NpmPackage;
+```
+
+#### 添加测试脚本
+```js
+// test.ts
+import NpmPackage from './NpmPackage.js';
+import {, getLatestVersion, getNpmInfo, getNpmRegistry, getVersions } from './versionUtils.js';
+import path from 'node:path';
+
+async function main() {
+    const pkg = new NpmPackage({
+        targetPath: path.join(import.meta.dirname, '../aaa'),
+        name: 'create-vite'
+    });
+
+    if(await pkg.exists()) {
+        pkg.update();
+    } else {
+        pkg.install();
+    }
+
+    console.log(await pkg.getPackageJSON())
+}
+
+main();
+```
+
+测试npmPackage包的效果. 如果指定包安装过，就 update 更新版本，否则 install 安装这个版本。
+
+第一次执行脚本会走install逻辑. 第二次执行会走update逻辑
+
+```bash
+pnpm --filter utils exec npx tsc
+pnpm --filter utils exec node ./dist/test.js
+```
+
+最后输出包
+```js
+export {
+    NpmPackage,
+    versionUtils
+}
+```
+
+### 发版utils包
+
+```bash
+npx changeset add
+npx changeset version
+
+git add .
+git commit -m 'utils 1.1.0'
+npx changeset publish
 ```

@@ -17,3 +17,5 @@ a handwritten JavaScript framework
 
 [手写monorepo脚手架cli](./vite-project/README.md)
 
+[手写zustand状态库](./mini-zustand/README.md)
+
