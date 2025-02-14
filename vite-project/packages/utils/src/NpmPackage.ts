@@ -55,6 +55,16 @@ class NpmPackage {
     return fs.existsSync(this.npmFilePath);
   }
 
+  // 判断模板是否存在且是旧版本
+  async existsAndIsOld() {
+    if(await this.exists()) {
+      const latestVersion = await this.getLatestVersion();
+      const packageJSON = await this.getPackageJSON();
+      return packageJSON.version !== latestVersion;
+    }
+    return false;
+  }
+
   async getPackageJSON() {
     if(await this.exists()) {
       return fse.readJSONSync(path.resolve(this.npmFilePath, 'package.json'));
