@@ -28,8 +28,16 @@ async function create() {
     projectName = await input({ message: '请输入项目名称' });
   }
 
-  console.log(projectTemplate, projectName);
-  // console.log(os.homedir());
+  const targetPath = path.join(process.cwd(), projectName);
+
+  if(fse.existsSync(targetPath)) {
+    const empty = await confirm({ message: '该目录不为空,  是否清空' });
+    if(empty) {
+      fse.emptyDirSync(targetPath);
+    } else {
+      process.exit(0);
+    }
+  }
 
   const pkg = new NpmPackage({
     name: projectTemplate,
@@ -54,7 +62,28 @@ async function create() {
   await sleep(1000);
 
   const templatePath = path.join(pkg.npmFilePath, 'template');
-  const targetPath = path.join(process.cwd(), projectName);
+
+  fse.copySync(templatePath, targetPath);
+
+  spinner.stop();
+
+  const renderData: Record<string, any> = { projectName };
+  const deleteFiles: string[] = [];
+
+  const questionConfigPath = path.join(pkg.npmFilePath, 'questions.json');
+
+  if(fse.existsSync(questionConfigPath)) {
+    const config = fse.readJSONSync(questionConfigPath);
+
+    for(let key in config) {
+      const res = await confirm({ message: '是否启用 ' + key });
+      renderData[key] = res;
+
+      if(!res) {
+        deleteFiles.push(...config[key].files);
+      }
+    }
+  }
 
   const files = await glob('**', {
     cwd: targetPath,
@@ -64,23 +93,14 @@ async function create() {
 
   for(let i = 0; i < files.length; i++) {
     const filePath = path.join(targetPath, files[i]);
-    const renderResult = await ejs.renderFile(filePath, { projectName });
+    const renderResult = await ejs.renderFile(filePath, renderData);
+
     fse.writeFileSync(filePath, renderResult);
   }
 
-  console.log(files);
-
-  if(fse.existsSync(targetPath)) {
-    spinner.stop();
-    const empty = await confirm({ message: '该目录不为空,  是否清空' });
-    if(empty) {
-      fse.emptyDirSync(targetPath);
-    } else {
-      process.exit(0);
-    }
-  }
-
-  fse.copySync(templatePath, targetPath);
+  deleteFiles.forEach(item => {
+    fse.removeSync(path.join(targetPath, item));
+  })
 
   spinner.succeed('创建项目成功');
 }
@@ -90,7 +110,5 @@ function sleep(timeout: number) {
       setTimeout(resolve, timeout);
   }));
 }
-
-create();
 
 export default create;
