@@ -1,5 +1,11 @@
 # @colin123-cli/cli
 
+## 0.0.4
+
+### Patch Changes
+
+- @colin123-cli/create@0.1.1
+
 ## 0.0.3
 
 ### Patch Changes
