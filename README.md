@@ -19,3 +19,5 @@ a handwritten JavaScript framework
 
 [手写zustand状态库](./mini-zustand/README.md)
 
+[React加载Threejs3D模型](./react-threejs-app/README.md)
+
