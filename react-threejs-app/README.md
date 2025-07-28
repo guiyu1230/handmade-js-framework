@@ -146,3 +146,116 @@ function App() {
 export default App
 ```
 
+---
+
+## react-three-fiber组件化开发3D项目
+
+我们学了下 react-three-fiber，它是用组件的方式来写 3D 场景。
+
+核心 api 在 @react-three/fiber 这个包，扩展的 api 比如 OrbitControls 在 @react-three/drei 这个包。
+
+最外层根组件是 Canvas，其余的 light、mesh 等都用组件的方式写。
+
+我们用了 useLoader、useThree、useFrame 这几个 hook：
+
+useFrame：在每帧的渲染循环里执行一些逻辑，可以通过第一个参数 state 拿到上下文
+useLoader： 加载 gltf 模型，结合 react 的 Suspense 组件实现异步加载
+useThree：拿到 state 上下文，比如 size、camera 等。
+而且 mesh 绑定点击事件等直接写 onClick 就行，内部都给封装好了。
+
+用组件的方式来写 3D 场景，确实更符合 react 的开发习惯，有 three.js 和 react 基础，上手还是很快的。
+
+> Three-fiber 是一个 React 渲染器，它必须与 React 的主版本配对，就像 react-dom、react-native 等一样。`@react-three/fiber@8 与 react@18 配对`，`@react-three/fiber@9 与 react@19 配对`。
+
+### 搭建项目
+```bash
+npx create-vite hello-r3f
+
+pnpm install
+pnpm install --save three
+pnpm install --save-dev @types/three
+# @react-three/fiber@8 与 react@18 配对
+pnpm install --save @react-three/fiber
+pnpm install --save @react-three/drei
+npm run dev
+pnpm install --save gsap
+```
+
+### 搭建项目 app.jsx
+- `useFrame`：在每帧的渲染循环里执行一些逻辑，可以通过第一个参数 state 拿到上下文
+- `useLoader`： 加载 gltf 模型，结合 react 的 Suspense 组件实现异步加载
+- `useThree`：拿到 state 上下文，比如 size、camera 等。
+
+```jsx
+import { OrbitControls } from '@react-three/drei'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
+import { useRef, Suspense } from 'react';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import gsap from 'gsap';
+
+function Mesh() {
+  const meshRef = useRef();
+  // three 帧数渲染器hook 可以执行动画
+  useFrame((state, delta) => {
+    // mesh物体旋转
+    meshRef.current.rotation.y += 0.01;
+  });
+  // mesh物体点击事件
+  function clickHandler() {
+    meshRef.current.material.color.set('blue');
+    // meshRef.current.material.color.set(Math.random() * 0xffffff);
+  }
+
+  return <mesh ref={meshRef} onClick={clickHandler}>
+    <boxGeometry args={[100, 100, 100]} />
+    <meshPhongMaterial color="orange" />
+  </mesh>
+}
+
+function Naruto() {
+
+  useFrame((state, delta) => {
+    // state.camera.position.x = Math.sin(state.clock.elapsedTime) * 500;
+  });
+  // 加载 gltf 模型，结合 react 的 Suspense 组件实现异步加载
+  const gltf = useLoader(GLTFLoader, 'naruto.glb');
+  console.log(gltf);
+  // gltf模型放大200倍
+  gltf.scene.scale.setScalar(200);
+  // 拿到 state 上下文，比如 size、camera 等。
+  const size = useThree(state => state.size);
+  console.log('size', size);
+  // 拿到camera对象 执行动画移动
+  const camera = useThree(state => state.camera);
+  // 使用gsap执行动画移动
+  gsap.to(camera.position, {
+    x: 0,
+    y: 500,
+    z: 200,
+    duration: 1
+  })
+
+  return <primitive object={gltf.scene} />
+}
+
+function App1() {
+
+  return <Canvas camera={{
+    position: [0, 500, 500]
+  }} style={{
+      width: window.innerWidth,
+      height: window.innerHeight
+  }}>
+    <ambientLight/>
+    <axesHelper args={[1000]}/>
+    <directionalLight position={[500, 400, 300]}/>
+    <OrbitControls/>
+    {/* <Mesh /> */}
+    <Suspense fallback={null}>
+      <Naruto />
+    </Suspense>
+  </Canvas>
+}
+
+export default App1
+```
